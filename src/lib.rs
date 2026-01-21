@@ -2,25 +2,24 @@
 
 pub mod interface;
 pub mod states; 
+mod processors;
+pub mod types;
+use core::mem::MaybeUninit;
 
 
 use pinocchio::{
-  AccountView,
-  Address,
-  entrypoint,
-  ProgramResult
+  AccountView, Address, ProgramResult, entrypoint, error::ProgramError, hint::unlikely
 };
 
 solana_address::declare_id!("GJJuYV5QA1Lt9Ht5rdmVgvXdgjTJDe7nfJQ47YLvdstV");
 
-use core::mem::MaybeUninit;
-const UNINIT_BYTE: MaybeUninit<u8> = MaybeUninit::<u8>::uninit();
+
 #[inline(always)]
 pub fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {
 
     // SAFETY:
     // - Pointers are of alignment 1,
-    // - the length will not exceed either pointer.
+    // - the length will not exceed either pointers length
     unsafe {
         core::ptr::copy_nonoverlapping(
             source.as_ptr(), 
@@ -30,7 +29,10 @@ pub fn write_bytes(destination: &mut [MaybeUninit<u8>], source: &[u8]) {
     }
 }
 
+use solana_address::address_eq;
 use solana_program_log::log;
+
+use crate::interface::ProgramInstructions;
 
 
 entrypoint!(process_instruction);
@@ -40,6 +42,19 @@ pub fn process_instruction(
   accounts: &[AccountView],
   instruction_data: &[u8],
 ) -> ProgramResult {
-  log("Hello from my pinocchio program!");
-  Ok(())
+    if unlikely(address_eq(program_id, &crate::ID)) {
+        return Err(ProgramError::IncorrectProgramId);
+    }
+
+    log("Hello from my pinocchio program!");
+    let [discr, instruction_data @ ..] = instruction_data else {
+        return Err(pinocchio::error::ProgramError::InvalidInstructionData);
+    };
+
+    match (*discr).try_into()? {
+        ProgramInstructions::MyInstruction => {
+            log!("My instruction.");
+            processors::process_something_processor(instruction_data, accounts)
+        },
+    }
 }
