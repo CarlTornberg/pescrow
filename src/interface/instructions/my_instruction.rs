@@ -1,8 +1,8 @@
-use core::{mem::MaybeUninit, slice::from_raw_parts};
+use core::slice::from_raw_parts;
 
 use pinocchio::{AccountView, ProgramResult, cpi::{Signer, invoke_signed}, instruction::{InstructionAccount, InstructionView}, sysvars::instructions};
 
-use crate::{UNINIT_BYTE, interface::ProgramInstruction, write_bytes};
+use crate::{interface::ProgramInstructions, states::Transmutable, types::{Discriminator, F32Bytes, U64Bytes, UNINIT_BYTE}, write_bytes};
 
 pub struct MyInstruction<'a> {
     /// To Account
@@ -35,7 +35,8 @@ impl MyInstruction<'_> {
         // - [0]: discriminator
         // - [1..9]: amount (u64)
         let mut inst_data = [UNINIT_BYTE; INST_LEN];
-        write_bytes(&mut inst_data, &[ProgramInstruction::MyInstruction.into()]);
+
+        write_bytes(&mut inst_data, &[ProgramInstructions::MyInstruction.into()]);
         write_bytes(&mut inst_data[1..9], &self.amount.to_le_bytes());
         
         // Create instruction
@@ -51,5 +52,32 @@ impl MyInstruction<'_> {
             &[self.to, self.from],
             signers,
         )
+    }
+}
+
+pub struct MyInstructionData {
+    field_a: U64Bytes,
+    field_b: F32Bytes,
+}
+
+// SAFETY: Struct is only of u8's.
+unsafe impl Transmutable for MyInstructionData { 
+    const LEN: usize = size_of::<Self>();
+}
+
+impl MyInstructionData {
+    pub fn new(field_a: u64, field_b: f32) -> Self {
+        Self { 
+            field_a: field_a.to_le_bytes(), 
+            field_b: field_b.to_le_bytes() 
+        }
+    }
+
+    pub fn field_a(&self) -> u64 {
+        u64::from_le_bytes(self.field_a)
+    }
+
+    pub fn field_b(&self) -> f32 {
+        f32::from_le_bytes(self.field_b)
     }
 }
