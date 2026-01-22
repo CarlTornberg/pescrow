@@ -19,5 +19,4 @@ impl MyState {
     pub fn field_c(&self) -> f32 {
         f32::from_le_bytes(self.field_c)
     }
-    
 }
