@@ -1,6 +1,6 @@
 use pinocchio::{AccountView, ProgramResult, error::ProgramError};
 
-use crate::{interface::MyInstructionData, helpers::bytes_helpers::from_bytes};
+use crate::{helpers::{Transmutable, bytes_helpers::from_bytes}, interface::MyInstructionData, states::my_state::MyState};
 
 pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
 
@@ -15,7 +15,7 @@ pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView])
     // Extract accounts
     // Validate accounts
     // Deserialize accounts
-    let [authority_view, _remaining @ ..] = accounts else {
+    let [authority_view, data_view, _remaining @ ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
     if !authority_view.is_signer() {
@@ -23,6 +23,11 @@ pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView])
     }
 
     //      BUSINESS LOGIC
+    if data_view.data_len() < MyState::LEN {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    let my_state = from_bytes::<MyState>(unsafe { &*(data_view.data_ptr() as *const [u8; MyState::LEN]) })?;
+    assert_eq!(my_state.field_a(), 0);
 
 
     Ok(())
