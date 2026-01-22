@@ -1,8 +1,8 @@
 use pinocchio::{AccountView, ProgramResult, error::ProgramError};
 
-use crate::{interface::MyInstructionData, states::from_bytes};
+use crate::{interface::MyInstructionData, helpers::bytes_helpers::from_bytes};
 
-pub(crate) fn process_something_processor(inst_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
+pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
 
     //      INSTRUCTION DATA
     // Extract instruction data

@@ -1,8 +1,12 @@
 use core::slice::from_raw_parts;
 
-use pinocchio::{AccountView, ProgramResult, cpi::{Signer, invoke_signed}, instruction::{InstructionAccount, InstructionView}, sysvars::instructions};
+use pinocchio::{AccountView, ProgramResult, cpi::{Signer, invoke_signed}, instruction::{InstructionAccount, InstructionView}};
 
-use crate::{interface::ProgramInstructions, states::Transmutable, types::{Discriminator, F32Bytes, U64Bytes, UNINIT_BYTE}, write_bytes};
+use crate::{
+    interface::ProgramInstructions, 
+    helpers::bytes_helpers::{Transmutable, write_bytes}, 
+    types::{F32Bytes, U64Bytes, UNINIT_BYTE}, 
+};
 
 pub struct MyInstruction<'a> {
     /// To Account
