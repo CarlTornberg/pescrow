@@ -5,7 +5,7 @@ use core::ptr::copy_nonoverlapping;
 pub use my_instruction::*;
 use pinocchio::error::ProgramError;
 
-use crate::{states::{Transmutable, as_bytes}, types::Discriminator};
+use crate::{helpers::bytes_helpers::{Transmutable, as_bytes}, types::Discriminator};
 
 #[repr(u8)]
 pub enum ProgramInstructions {
