@@ -1,7 +1,7 @@
 use core::mem::MaybeUninit;
 
 //  SOLANA SPECIFIC
-pub const DISCR_LEN: usize = size_of::<Discriminator>();
+pub const DISCRIMINATOR_LEN: usize = size_of::<Discriminator>();
 pub type Discriminator = u8;
 
 //      RUST MEMORY
