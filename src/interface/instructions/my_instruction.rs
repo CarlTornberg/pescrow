@@ -1,11 +1,15 @@
 use core::slice::from_raw_parts;
 
-use pinocchio::{AccountView, ProgramResult, cpi::{Signer, invoke_signed}, instruction::{InstructionAccount, InstructionView}};
+use pinocchio::{
+    AccountView, 
+    ProgramResult, 
+    cpi::{Signer, invoke_signed}, 
+    instruction::{InstructionAccount, InstructionView}};
 
 use crate::{
-    interface::ProgramInstructions, 
-    helpers::bytes_helpers::{Transmutable, write_bytes}, 
-    types::{F32Bytes, U64Bytes, UNINIT_BYTE}, 
+    helpers::bytes_helpers::Transmutable, 
+    interface::{InstructionData, ProgramInstructions, instruction_to_bytes}, 
+    types::{DISCRIMINATOR_LEN, F32Bytes, U64Bytes, UNINIT_BYTE} 
 };
 
 pub struct MyInstruction<'a> {
@@ -15,8 +19,8 @@ pub struct MyInstruction<'a> {
     /// From account
     pub from: &'a AccountView,
 
-    /// Amount
-    pub amount: u64,
+    /// Instruction data
+    pub data: &'a MyInstructionData,
 }
 
 impl MyInstruction<'_> {
@@ -27,7 +31,7 @@ impl MyInstruction<'_> {
 
     #[inline]
     pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
-        const INST_LEN: usize = 9;
+        const INST_LEN: usize = DISCRIMINATOR_LEN + MyInstructionData::LEN;
 
         // Instruction accounts
         let inst_accs: [InstructionAccount; 2] = [
@@ -35,13 +39,11 @@ impl MyInstruction<'_> {
             InstructionAccount::writable(self.to.address())
         ];
         
-        // Instruction data
-        // - [0]: discriminator
-        // - [1..9]: amount (u64)
         let mut inst_data = [UNINIT_BYTE; INST_LEN];
-
-        write_bytes(&mut inst_data, &[ProgramInstructions::MyInstruction.into()]);
-        write_bytes(&mut inst_data[1..9], &self.amount.to_le_bytes());
+        instruction_to_bytes(
+            &mut inst_data, 
+            &ProgramInstructions::MyInstruction, 
+            self.data)?;
         
         // Create instruction
         let inst = InstructionView {
@@ -59,6 +61,9 @@ impl MyInstruction<'_> {
     }
 }
 
+impl InstructionData for MyInstructionData { }
+
+#[repr(C)]
 pub struct MyInstructionData {
     field_a: U64Bytes,
     field_b: F32Bytes,
@@ -83,5 +88,39 @@ impl MyInstructionData {
 
     pub fn field_b(&self) -> f32 {
         f32::from_le_bytes(self.field_b)
+    }
+}
+
+#[cfg(test)]
+mod solana_sdk {
+    #![allow(unused)]
+    //! Helper functions to interact with the solana SDK.
+
+    use solana_sdk::{message::AccountMeta};
+    use crate::helpers::Transmutable;
+
+    pub struct MyInstruction<'a> {
+        accounts: super::MyInstruction<'a>,
+        data: super::MyInstructionData,
+    }
+
+    impl MyInstruction<'_> {
+        pub fn to_solana_sdk_instruction(&self) -> solana_sdk::instruction::Instruction {
+            solana_sdk::instruction::Instruction {
+                program_id: crate::ID,
+                accounts: [
+                    AccountMeta::new(
+                        solana_address::Address::new_from_array(
+                            self.accounts.from.address().to_bytes()), 
+                        true),
+                    AccountMeta::new(
+                        solana_address::Address::new_from_array(
+                            self.accounts.to.address().to_bytes()), 
+                        true)
+
+                ].to_vec(),
+                data: self.data.as_bytes().to_vec(),
+            }
+        }
     }
 }
