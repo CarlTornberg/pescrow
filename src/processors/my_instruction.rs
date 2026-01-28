@@ -7,9 +7,10 @@ pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView])
     //      INSTRUCTION DATA
     // Extract instruction data
     // Validate instruction data
-    let inst_data = from_bytes::<MyInstructionData>(inst_data)?;
-    assert_eq!(inst_data.field_a(), 0u64);
-    assert_eq!(inst_data.field_b(), 0.0f32);
+    let _inst_data = from_bytes::<MyInstructionData>(inst_data)?;
+
+    // assert_eq!(inst_data.field_a(), 0u64);
+    // assert_eq!(inst_data.field_b(), 0.0f32);
     
     //      ACCOUNTS
     // Extract accounts
@@ -23,11 +24,8 @@ pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView])
     }
 
     //      BUSINESS LOGIC
-    if data_view.data_len() < MyState::LEN {
-        return Err(ProgramError::InvalidAccountData);
-    }
-    let my_state = from_bytes::<MyState>(unsafe { &*(data_view.data_ptr() as *const [u8; MyState::LEN]) })?;
-    assert_eq!(my_state.field_a(), 0);
+    let _my_state = from_bytes::<MyState>(unsafe { &*(data_view.data_ptr() as *const [u8; MyState::LEN]) })?;
+    // assert_eq!(my_state.field_a(), 0);
 
 
     Ok(())
