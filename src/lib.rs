@@ -11,7 +11,7 @@ use pinocchio::{
     ProgramResult, 
     entrypoint, 
     error::ProgramError, 
-    hint::unlikely
+    hint::unlikely, nostd_panic_handler
 };
 use solana_address::address_eq;
 use solana_program_log::log;
@@ -19,6 +19,7 @@ use crate::interface::ProgramInstructions;
 
 solana_address::declare_id!("GJJuYV5QA1Lt9Ht5rdmVgvXdgjTJDe7nfJQ47YLvdstV");
 
+nostd_panic_handler!();
 entrypoint!(process_instruction);
 
 pub fn process_instruction(
@@ -26,7 +27,7 @@ pub fn process_instruction(
   accounts: &[AccountView],
   instruction_data: &[u8],
 ) -> ProgramResult {
-    if unlikely(address_eq(program_id, &crate::ID)) {
+    if unlikely(!address_eq(program_id, &crate::ID)) {
         return Err(ProgramError::IncorrectProgramId);
     }
 
