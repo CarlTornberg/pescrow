@@ -1,15 +1,12 @@
-pub mod my_instruction;
-
 use core::{mem::MaybeUninit, ptr::copy_nonoverlapping};
-
-pub use my_instruction::*;
 use pinocchio::error::ProgramError;
-
 use crate::{errors::CustomError, helpers::bytes_helpers::Transmutable, types::Discriminator};
 
 #[repr(u8)]
 pub enum ProgramInstructions {
-    MyInstruction,
+    Make = 0,
+    Take = 1,
+    Refund = 2,
 }
 
 /// SAFETY Is a single byte in size
@@ -31,7 +28,7 @@ impl TryFrom<u8> for ProgramInstructions {
             // SAFETY: 
             // - Keep the range up to date when adding new instructions.
             // - ProgramInstruction is represented as a u8
-            0..=1 => Ok(unsafe { core::mem::transmute::<u8, ProgramInstructions>(value) }),
+            0..=3 => Ok(unsafe { core::mem::transmute::<u8, ProgramInstructions>(value) }),
             _ => Err(ProgramError::InvalidInstructionData)
         }
     }

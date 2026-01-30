@@ -13,7 +13,6 @@ use pinocchio::{
     error::ProgramError, 
     hint::unlikely, nostd_panic_handler
 };
-use solana_address::address_eq;
 use solana_program_log::log;
 use crate::interface::ProgramInstructions;
 

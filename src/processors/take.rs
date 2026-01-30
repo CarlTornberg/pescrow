@@ -1,8 +1,8 @@
 use pinocchio::{AccountView, ProgramResult, error::ProgramError};
 
-use crate::{helpers::{Transmutable, bytes_helpers::from_bytes}, interface::MyInstructionData, states::my_state::MyState};
+use crate::{helpers::bytes_helpers::from_bytes, interface::MyInstructionData, states::escrow::Escrow};
 
-pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
+pub(crate) fn process_take(inst_data: &[u8], accounts: &[AccountView]) -> ProgramResult {
 
     //      INSTRUCTION DATA
     // Extract instruction data
@@ -24,7 +24,7 @@ pub(crate) fn process_my_instruction(inst_data: &[u8], accounts: &[AccountView])
     }
 
     //      BUSINESS LOGIC
-    let _my_state = from_bytes::<MyState>(unsafe { &*(data_view.data_ptr() as *const [u8; MyState::LEN]) })?;
+    let escrow = from_bytes::<Escrow>(unsafe { &*(data_view.data_ptr() as *const [u8; Escrow::LEN]) })?;
     // assert_eq!(my_state.field_a(), 0);
 
 
