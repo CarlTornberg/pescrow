@@ -13,6 +13,7 @@ use pinocchio::{
     error::ProgramError, 
     hint::unlikely, nostd_panic_handler
 };
+use solana_address::address_eq;
 use solana_program_log::log;
 use crate::interface::ProgramInstructions;
 
@@ -35,9 +36,17 @@ pub fn process_instruction(
     };
 
     match (*discr).try_into()? {
-        ProgramInstructions::MyInstruction => {
-            log!("My instruction.");
-            processors::process_my_instruction(instruction_data, accounts)
+        ProgramInstructions::Make => {
+            log!("Make");
+            processors::make::process_make(instruction_data, accounts)
+        },
+        ProgramInstructions::Take => {
+            log!("Take");
+            processors::take::process_take(instruction_data, accounts)
+        },
+        ProgramInstructions::Refund => {
+            log!("Refund");
+            processors::refund::process_refund(instruction_data, accounts)
         },
     }
 }
